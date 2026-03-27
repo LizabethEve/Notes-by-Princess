@@ -1,0 +1,25 @@
+{
+    "text": "Testing the type tracking capapbilities again, because I've changed some things.\n",
+    "tags": [
+        {
+            "tag": "italic",
+            "start": "1.0",
+            "end": "1.26"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "1.26",
+            "end": "1.57"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "1.58",
+            "end": "1.64"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "1.65",
+            "end": "1.68"
+        }
+    ]
+}
