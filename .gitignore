@@ -1,4 +1,2 @@
 .notes_copy.py
-__pycache__/
-.directory/
 *.json
