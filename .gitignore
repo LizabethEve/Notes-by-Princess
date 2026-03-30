@@ -1,6 +1,3 @@
-.git/
-.github/
-*.html
 .notes_copy.py
-.idea/
 __pycache__/
+.directory/
