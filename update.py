@@ -22,7 +22,7 @@ else:
     APP_TO_RUN = "notes.py"  # Linux or fallback
 
 # Optional: folders/files to NOT overwrite (important if you add user data later)
-EXCLUDE = [".version", "__pycache__", "font_state.json", "notes_copy.py", "theme_state.json", "notes"]
+EXCLUDE = [".version", "__pycache__", "font_state.json", "notes_copy.py", "theme_state.json", "notes", ".github", ".idea",]
 
 
 # === FUNCTIONS ===
