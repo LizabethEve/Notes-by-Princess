@@ -1,14 +1,21 @@
 import os
 import json
+import sys
 import customtkinter as ctk
 import tkinter as tk
+from PIL import Image
 from tkinter import filedialog
+from Images.recolor import batch_recolor_fast
 
 # constants
-THEME_FILE = "theme_state.json"
-FONT_FILE = "font_state.json"
-NOTES_DIR = "notes"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+NOTES_DIR = os.path.join(BASE_DIR, "notes")
+THEME_FILE = os.path.join(BASE_DIR, "theme_state.json")
+FONT_FILE = os.path.join(BASE_DIR, "font_state.json")
+IMAGES = os.path.join(BASE_DIR, "Images")
+APP_IMAGE = os.path.join(BASE_DIR, "App.png")
 os.makedirs(NOTES_DIR, exist_ok=True)
+
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>
@@ -21,6 +28,8 @@ class Notes():
         self.app = ctk.CTk()
         self.app.title("Notes")
         self.app.geometry("1920x1080")
+        self.app_image = tk.PhotoImage(file=APP_IMAGE)
+        self.app.iconphoto(True, self.app_image)
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -45,6 +54,7 @@ class Notes():
         self.highlight_color = self.default[5]
         self.text_color = self.default[6]
         self.highlighted_text_color = self.default[7]
+
 
         # call functions
         self.load_theme_state()
@@ -192,7 +202,7 @@ class Notes():
         self.notebox.tag_config("bold_italic", font=("Arial", 12, "bold italic"))
 
         # binds user key release to apply text tags, so the effect takes place the second the character is released while typing, still having issues with not recording one character while another is pressed down (only one at once)
-        self.notebox.bind("<KeyRelease>", lambda e: self.notebox.after_idle(self.apply_active_tags))
+        self.notebox.bind("<KeyPress>", lambda e: self.notebox.after_idle(self.apply_active_tags))
 
     # function called by show_editor, creates toolbar
     def show_toolbar(self):
@@ -219,9 +229,40 @@ class Notes():
                                     border_width=0)
         self.toolbar.place(relx=0.5, rely=0.0, anchor="n")
 
+        self.back_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Back_Arrow.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Back_Arrow.png")),
+                                    size=(15, 15)
+        )
+
+        self.save_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Save.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Save.png")),
+                                    size=(15, 15)
+        )
+
+        self.font_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Font.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Font.png")),
+                                    size=(15, 15)
+        )
+
+        self.bold_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Bold.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Bold.png")),
+                                    size=(15, 15)
+        )
+
+        self.italics_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Italics.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Italics.png")),
+                                    size=(15, 15)
+        )
+
         # toolbar widgets
         self.back_button = ctk.CTkButton(self.toolbar,
-                                    text="←",
+                                    text="",
+                                    image=self.back_image,
                                     fg_color=self.background_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
@@ -234,7 +275,8 @@ class Notes():
         self.back_button.pack(pady=1)
 
         self.save_button = ctk.CTkButton(self.toolbar,
-                                    text="🡻",
+                                    text="",
+                                    image=self.save_image,
                                     fg_color=self.background_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
@@ -247,7 +289,8 @@ class Notes():
         self.save_button.pack(pady=1)
 
         self.bold_button = ctk.CTkButton(self.toolbar,
-                                    text="B",
+                                    text="",
+                                    image=self.bold_image,
                                     fg_color=self.background_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
@@ -260,7 +303,8 @@ class Notes():
         self.bold_button.pack(pady=1)
 
         self.italic_button = ctk.CTkButton(self.toolbar,
-                                      text="I",
+                                      text="",
+                                      image=self.italics_image,
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
                                       border_width=1,
@@ -273,7 +317,8 @@ class Notes():
         self.italic_button.pack(pady=1)
 
         self.font_button = ctk.CTkButton(self.toolbar,
-                                      text="F",
+                                      text="",
+                                      image=self.font_image,
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
                                       border_width=1,
@@ -425,6 +470,8 @@ class Notes():
         self.highlight_color = theme[5]
         self.text_color = theme[6]
         self.highlighted_text_color = theme[7]
+
+        batch_recolor_fast(IMAGES, self.frame_color)
 
         # reconfigure widgets to apply theme colors
         self.app.configure(fg_color=self.background_color)
@@ -722,6 +769,12 @@ class Notes():
 # >>>>>>>>>>>>>>>>>>>>>>>>
 # App Run
 # <<<<<<<<<<<<<<<<<<<<<<<<
+    def resource_path(relative_path):
+        try:
+            base_path = sys._MEIPASS  # PyInstaller temp folder
+        except AttributeError:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
     def close_app(self):
         self.save_font_state()
