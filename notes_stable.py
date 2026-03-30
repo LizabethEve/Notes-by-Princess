@@ -16,6 +16,8 @@ IMAGES = os.path.join(BASE_DIR, "Images")
 APP_IMAGE = os.path.join(BASE_DIR, "App.png")
 os.makedirs(NOTES_DIR, exist_ok=True)
 
+BULLETS = ("• ", "- ", "* ")
+
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>
@@ -201,6 +203,8 @@ class Notes():
         self.notebox.tag_config("italic", font=("Arial", 12, "italic"))
         self.notebox.tag_config("bold_italic", font=("Arial", 12, "bold italic"))
 
+        self.notebox.bind("<Return>", self.handle_enter)
+
         # binds user key release to apply text tags, so the effect takes place the second the character is released while typing, still having issues with not recording one character while another is pressed down (only one at once)
         self.notebox.bind("<KeyPress>", lambda e: self.notebox.after_idle(self.apply_active_tags))
 
@@ -256,6 +260,12 @@ class Notes():
         self.italics_image = ctk.CTkImage(
                                     light_image=Image.open(os.path.join(IMAGES, "Italics.png")),
                                     dark_image=Image.open(os.path.join(IMAGES, "Italics.png")),
+                                    size=(15, 15)
+        )
+
+        self.bulleted_image = ctk.CTkImage(
+                                    light_image=Image.open(os.path.join(IMAGES, "Bulleted_List.png")),
+                                    dark_image=Image.open(os.path.join(IMAGES, "Bulleted_List.png")),
                                     size=(15, 15)
         )
 
@@ -330,6 +340,20 @@ class Notes():
                                       )
         self.font_button.pack(pady=1)
 
+        self.bullet_button = ctk.CTkButton(self.toolbar,
+                                      text="",
+                                      image=self.bulleted_image,
+                                      fg_color=self.background_color,
+                                      hover_color=self.hover_color,
+                                      border_width=1,
+                                      border_color=self.frame_color,
+                                      width=30,
+                                      corner_radius=5,
+                                      text_color=self.text_color,
+                                      command=self.insert_bullet
+                                      )
+        self.bullet_button.pack(pady=1)
+
     # function called when user presses theme button
     def show_theme_editor(self):
         # clear widgets and call functions to create theme editor
@@ -380,6 +404,7 @@ class Notes():
         self.bold_button.configure(command=None)
         self.italic_button.configure(command=None)
         self.save_button.configure(command=None)
+        self.bullet_button.configure(command=None)
 
         # widgets attatched to the bottom scroll window
         self.button_frame = ctk.CTkFrame(self.bottom_scroll,
@@ -660,6 +685,49 @@ class Notes():
         except tk.TclError:
             pass
 
+    def insert_bullet(self):
+        try:
+            # If text is selected → apply bullets to all selected lines
+            start = self.notebox.index("sel.first linestart")
+            end = self.notebox.index("sel.last lineend")
+
+            line = start
+            while self.notebox.compare(line, "<=", end):
+                line_end = self.notebox.index(f"{line} lineend")
+                text = self.notebox.get(line, line_end)
+
+                if text.startswith("• "):
+                    # Remove bullet
+                    self.notebox.delete(line, f"{line} +2c")
+                    self.notebox.insert(line, "- ")
+                elif text.startswith(BULLETS[1]):
+                    self.notebox.delete(line, f"{line} +2c")
+                    self.notebox.insert(line, "* ")
+                elif text.startswith(BULLETS[2]):
+                    self.notebox.delete(line, f"{line} +2c")
+                else:
+                    self.notebox.insert(line, "• ")
+
+                line = self.notebox.index(f"{line} +1line")
+
+        except tk.TclError:
+            # No selection → toggle bullet on current line
+            line = self.notebox.index("insert linestart")
+            line_end = self.notebox.index(f"{line} lineend")
+            text = self.notebox.get(line, line_end)
+
+            if text.startswith("• "):
+                # Remove bullet
+                self.notebox.delete(line, f"{line} +2c")
+                self.notebox.insert("insert", "- ")
+            elif text.startswith(BULLETS[1]):
+                self.notebox.delete(line, f"{line} +2c")
+                self.notebox.insert("insert", "* ")
+            elif text.startswith(BULLETS[2]):
+                self.notebox.delete(line, f"{line} +2c")
+            else:
+                self.notebox.insert("insert", "• ")
+
     # called when user clicks bold button
     def toggle_bold(self):
         #toggle bold True/False
@@ -681,6 +749,18 @@ class Notes():
         self.italic_button.configure(
             fg_color=self.hover_color if self.active_tags["italic"] else self.background_color
         )
+
+    def handle_enter(self, event):
+        current_line = self.notebox.get("insert linestart", "insert lineend")
+
+        if current_line.strip().startswith(BULLETS):
+            if current_line.strip().startswith("- "):
+                self.notebox.insert("insert", "\n- ")
+            elif current_line.strip().startswith("* "):
+                self.notebox.insert("insert", "\n* ")
+            elif current_line.strip().startswith("• "):
+                self.notebox.insert("insert", "\n• ")
+            return "break"  # prevent default newline
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>

@@ -9,6 +9,3 @@
 # Editor-based HTTP Client requests
 /httpRequests/
 /notes/
-theme.json/
-font.json/
-*.png/
