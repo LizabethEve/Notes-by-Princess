@@ -8,7 +8,8 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-**/notes/
-**theme_state.json/
-**font_state.json/
+/var/home/princess/Desktop/Python/Notes/notes
+/var/home/princess/Desktop/Python/Notes/theme_state.json
+/var/home/princess/Desktop/Python/Notes/font_state.json
 *.png
+/var/home/princess/Desktop/Python/Notes/notes_stable.py
