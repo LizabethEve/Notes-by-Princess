@@ -8,7 +8,7 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-*notes/
-theme_state.json/
-font_state.json/
+**/notes/
+**theme_state.json/
+**font_state.json/
 *.png
