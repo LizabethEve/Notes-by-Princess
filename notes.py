@@ -13,7 +13,7 @@ NOTES_DIR = os.path.join(BASE_DIR, "notes")
 THEME_FILE = os.path.join(BASE_DIR, "theme_state.json")
 FONT_FILE = os.path.join(BASE_DIR, "font_state.json")
 IMAGES = os.path.join(BASE_DIR, "Images")
-APP_IMAGE = os.path.join(BASE_DIR, "App.png")
+APP_IMAGE = None
 os.makedirs(NOTES_DIR, exist_ok=True)
 
 BULLETS = ("• ", "- ", "* ")
@@ -30,8 +30,15 @@ class Notes():
         self.app = ctk.CTk()
         self.app.title("Notes")
         self.app.geometry("1920x1080")
-        self.app_image = tk.PhotoImage(file=APP_IMAGE)
-        self.app.iconphoto(True, self.app_image)
+        if sys.platform == "win32":
+            APP_IMAGE = app.iconbitmap("App.ico")
+        elif sys.platform == "darwin":
+            #APP_TO_RUN = "notes.app/Contents/MacOS/notes"
+            pass
+        else:
+            APP_IMAGE = os.path.join(BASE_DIR, "App.png")
+            self.app_image = tk.PhotoImage(file=APP_IMAGE)
+            self.app.iconphoto(True, self.app_image)
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")

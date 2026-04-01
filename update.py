@@ -16,12 +16,10 @@ LOCAL_VERSION_FILE = ".version"
 # === Platform-specific app ===
 if sys.platform == "win32":
     APP_TO_RUN = "notes.py"
-    notes.APP_IMAGE = app.iconbitmap("App.ico")
 elif sys.platform == "darwin":
     APP_TO_RUN = "notes.app/Contents/MacOS/notes"
 else:
     APP_TO_RUN = "notes.py"  # Linux or fallback
-    notes.APP_IMAGE = os.path.join(BASE_DIR, "App.png")
 
 # Optional: folders/files to NOT overwrite (important if you add user data later)
 EXCLUDE = [".version", "__pycache__", "font_state.json", "notes_copy.py", "theme_state.json", "notes", ".github", ".idea",]
