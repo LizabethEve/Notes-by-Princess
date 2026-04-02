@@ -13,7 +13,7 @@ NOTES_DIR = os.path.join(BASE_DIR, "notes")
 THEME_FILE = os.path.join(BASE_DIR, "theme_state.json")
 FONT_FILE = os.path.join(BASE_DIR, "font_state.json")
 IMAGES = os.path.join(BASE_DIR, "Images")
-APP_IMAGE = os.path.join(BASE_DIR, "App.png")
+APP_IMAGE = None
 os.makedirs(NOTES_DIR, exist_ok=True)
 
 BULLETS = ("• ", "- ", "* ")
@@ -30,8 +30,15 @@ class Notes():
         self.app = ctk.CTk()
         self.app.title("Notes")
         self.app.geometry("1920x1080")
-        self.app_image = tk.PhotoImage(file=APP_IMAGE)
-        self.app.iconphoto(True, self.app_image)
+        if sys.platform == "win32":
+            APP_IMAGE = app.iconbitmap("App.ico")
+        elif sys.platform == "darwin":
+            #APP_TO_RUN = "notes.app/Contents/MacOS/notes"
+            pass
+        else:
+            APP_IMAGE = os.path.join(BASE_DIR, "App.png")
+            self.app_image = tk.PhotoImage(file=APP_IMAGE)
+            self.app.iconphoto(True, self.app_image)
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -159,7 +166,7 @@ class Notes():
                                             corner_radius=5,
                                             fg_color=self.background_color,
                                             border_width=0,
-                                            height=40,
+                                            height=75,
                                             )
         self.note_title_case.pack(side="top", fill="x")
 
@@ -171,9 +178,9 @@ class Notes():
 
         self.note_title = ctk.CTkLabel(self.note_title_case,
                                        text=title,
-                                       height=45,
+                                       height=75,
                                        width=100,
-                                       font=("Arial", 24),
+                                       font=("Arial", 30),
                                        text_color=self.text_color,
                                        bg_color=self.background_color)
         self.note_title.place(relx=0.5, rely=0.5, anchor="center")
@@ -407,15 +414,22 @@ class Notes():
         self.bullet_button.configure(command=None)
 
         # widgets attatched to the bottom scroll window
-        self.button_frame = ctk.CTkFrame(self.bottom_scroll,
+        self.pre_button_frame = ctk.CTkFrame(self.bottom_scroll,
                                          corner_radius=5,
                                          border_width=0,
-                                         height=100,
+                                         height=200,
                                          fg_color=self.background_color
                                          )
-        self.button_frame.pack(side="top", fill="x")
+        self.pre_button_frame.pack(side="top", fill="x")
 
-        self.yellow_button = ctk.CTkButton(self.button_frame,
+        self.custom_button_frame = ctk.CTkFrame(self.bottom_scroll,
+                                                 corner_radius=5,
+                                                 border_width=0,
+                                                 fg_color=self.background_color,
+                                                 )
+        self.custom_button_frame.pack(side="bottom", fill="both", expand=True)
+
+        self.yellow_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Yellow",
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
@@ -427,7 +441,7 @@ class Notes():
                                       )
         self.yellow_button.place(relx=0.2, rely=0.5, anchor="center")
 
-        self.purple_button = ctk.CTkButton(self.button_frame,
+        self.purple_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Purple",
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
@@ -439,7 +453,7 @@ class Notes():
                                       )
         self.purple_button.place(relx=0.35, rely=0.5, anchor="center")
 
-        self.red_button = ctk.CTkButton(self.button_frame,
+        self.red_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Red",
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
@@ -451,7 +465,7 @@ class Notes():
                                       )
         self.red_button.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.green_button = ctk.CTkButton(self.button_frame,
+        self.green_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Green",
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
@@ -463,7 +477,7 @@ class Notes():
                                       )
         self.green_button.place(relx=0.65, rely=0.5, anchor="center")
 
-        self.blue_button = ctk.CTkButton(self.button_frame,
+        self.blue_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Blue",
                                       fg_color=self.background_color,
                                       hover_color=self.hover_color,
@@ -474,6 +488,49 @@ class Notes():
                                       command=lambda: self.change_theme("blue")
                                       )
         self.blue_button.place(relx=0.8, rely=0.5, anchor="center")
+
+        self.customize_seperator = ctk.CTkLabel(self.custom_button_frame,
+                                                text="--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---",
+                                                width=500,
+                                                text_color=self.frame_color,
+                                                )
+        self.customize_seperator.pack(side="top", pady=5)
+
+        self.customize_label = ctk.CTkLabel(self.custom_button_frame,
+                                            text="Customize:",
+                                            fg_color=self.background_color,
+                                            font=("Arial", 25),
+                                            height=100,
+                                            text_color=self.text_color,
+                                            )
+        self.customize_label.pack(side="top", pady=5)
+
+        self.background_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.background_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     )
+        self.background_color_button.pack(side="right", padx=350, pady=0)
+
+        self.background_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.background_color,
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.background_enter_bar.pack(side="right", padx=0)
+
+        self.background_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Background Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.background_color_label.pack(side="right",  padx=0, pady=0)
 
     # function called when user clicks font button
     def show_fonts(self):
