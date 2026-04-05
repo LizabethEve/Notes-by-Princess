@@ -24,6 +24,220 @@ BULLETS = ("• ", "- ", "* ")
 # Initialization
 # <<<<<<<<<<<<<<<<<<<<<<<<
 
+
+class ThemedDialog(ctk.CTkToplevel):
+    def __init__(self, app, owner, title, width=500, height=400):
+        super().__init__(app)
+
+        self.owner = owner
+
+        self.title(title)
+        self.geometry
+        self.resizable(False, False)
+        self.transient(app)
+        self.after(20, self.grab_set)
+
+        # THEME
+        self.configure(fg_color=self.owner.background_color)
+
+        # main container
+        self.container = ctk.CTkFrame(
+            self,
+            fg_color=self.owner.background_color
+        )
+        self.container.pack(fill="both", expand=True, padx=10, pady=10)
+
+
+class FileDialog(ThemedDialog):
+    def __init__(self, app, owner, mode="open", initial_dir=None):
+        super().__init__(app, owner, "Select File", 600, 500)
+
+        self.current_dir = initial_dir or NOTES_DIR
+
+        self.mode = mode
+        self.current_dir = initial_dir or NOTES_DIR
+        self.selected_file = None
+
+        # path label
+        self.path_label = ctk.CTkLabel(
+            self.container,
+            text=self.current_dir,
+            text_color=self.owner.text_color,
+            fg_color=self.owner.background_color,
+            corner_radius=5,
+        )
+        self.path_label.pack(anchor="w", pady=(0, 5))
+
+        # file list
+        self.listbox = tk.Listbox(
+            self.container,
+            bg=self.owner.background_color,
+            fg=self.owner.text_color,
+            #text_color=self.owner.text_color,
+            selectbackground=self.owner.hover_color,
+            relief="flat"
+        )
+        self.listbox.pack(fill="both", expand=True)
+
+        self.listbox.bind("<Double-Button-1>", self.on_double_click)
+
+        # filename entry (for save)
+        if mode == "save":
+            self.filename_entry = ctk.CTkEntry(
+                self.container,
+                justify="center",
+                fg_color=self.owner.background_color,
+                state="normal",
+                text_color=self.owner.text_color,
+                border_color=self.owner.frame_color,
+                placeholder_text="Enter filename..."
+            )
+            self.filename_entry.pack(fill="x", pady=5)
+
+        # buttons
+        btn_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=5)
+
+        ctk.CTkButton(
+            btn_frame,
+            text="Cancel",
+            border_width=0,
+            text_color=self.owner.text_color,
+            fg_color=self.owner.button_color,
+            hover_color=self.owner.hover_color,
+            command=self.destroy
+        ).pack(side="right", padx=5)
+
+        ctk.CTkButton(
+            btn_frame,
+            text="Select",
+            border_width=0,
+            text_color=self.owner.text_color,
+            fg_color=self.owner.button_color,
+            hover_color=self.owner.hover_color,
+            command=self.select
+        ).pack(side="right")
+
+        self.load_files()
+
+    def load_files(self):
+        self.listbox.delete(0, tk.END)
+
+        # add parent dir
+        if os.path.dirname(self.current_dir):
+            self.listbox.insert(tk.END, "..")
+
+        for f in os.listdir(self.current_dir):
+            self.listbox.insert(tk.END, f)
+
+    def on_double_click(self, event):
+        selection = self.listbox.get(tk.ACTIVE)
+        path = os.path.join(self.current_dir, selection)
+
+        if selection == "..":
+            self.current_dir = os.path.dirname(self.current_dir)
+        elif os.path.isdir(path):
+            self.current_dir = path
+        else:
+            self.selected_file = path
+            self.destroy()
+            return
+
+        self.path_label.configure(text=self.current_dir)
+        self.load_files()
+
+    def select(self):
+        selection = self.listbox.get(tk.ACTIVE)
+
+        if self.mode == "open":
+            path = os.path.join(self.current_dir, selection)
+            if os.path.isfile(path):
+                self.selected_file = path
+
+        elif self.mode == "save":
+            name = self.filename_entry.get()
+            if name:
+                self.selected_file = os.path.join(self.current_dir, name)
+
+        self.destroy()
+
+
+class ColorPicker(ThemedDialog):
+    def __init__(self, app, owner):
+        super().__init__(app, owner, "Pick Color", 350, 400)
+
+        self.color = "#ffffff"
+        self.temp_color = self.color
+        self.confirmed = False
+
+        self.r = tk.IntVar(value=255)
+        self.g = tk.IntVar(value=255)
+        self.b = tk.IntVar(value=255)
+
+        for label, var in [("R", self.r), ("G", self.g), ("B", self.b)]:
+            ctk.CTkLabel(self.container, text=label,
+                         fg_color=self.owner.background_color,
+                         text_color=self.owner.text_color,
+                         ).pack()
+            ctk.CTkSlider(
+                self.container,
+                from_=0,
+                to=255,
+                variable=var,
+                border_width=0,
+                #border_color=self.owner.text_color,
+                fg_color=self.owner.background_color,
+                progress_color=self.owner.highlight_color,
+                button_color=self.owner.text_color,
+                button_hover_color=self.owner.hover_color,
+                command=lambda e: self.update_color()
+            ).pack(fill="x", padx=10)
+
+        self.preview = ctk.CTkFrame(self.container, height=50,
+                                    border_width=0,
+                                    fg_color=self.owner.background_color,
+                                    )
+        self.preview.pack(fill="x", padx=10, pady=10)
+
+        self.hex_entry = ctk.CTkEntry(self.container,
+                                    justify="center",
+                                    fg_color=self.owner.background_color,
+                                    state="normal",
+                                    text_color=self.owner.text_color,
+                                    border_color=self.owner.frame_color,
+                                    )
+        self.hex_entry.pack(fill="x", padx=10)
+
+        ctk.CTkButton(
+            self.container,
+            text="Select",
+            border_width=0,
+            text_color=self.owner.text_color,
+            fg_color=self.owner.button_color,
+            hover_color=self.owner.hover_color,
+            command=self.confirm
+        ).pack(pady=10)
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.update_color()
+
+    def update_color(self):
+        self.temp_color = f"#{self.r.get():02x}{self.g.get():02x}{self.b.get():02x}"
+        self.preview.configure(fg_color=self.temp_color)
+        self.hex_entry.delete(0, "end")
+        self.hex_entry.insert(0, self.temp_color)
+
+    def confirm(self):
+        self.confirmed = True
+        self.color = self.hex_entry.get()
+        self.destroy()
+
+    def cancel(self):
+        # do NOT update self.color
+        self.destroy()
+
+
 class Notes():
     def __init__(self):
         # define ctk
@@ -146,7 +360,7 @@ class Notes():
 
         self.new_button = ctk.CTkButton(self.main_bg,
                                    text="New File",
-                                   fg_color=self.background_color,
+                                   fg_color=self.button_color,
                                    hover_color=self.hover_color,
                                    border_width=0,
                                    width=100,
@@ -159,7 +373,7 @@ class Notes():
 
         self.open_button = ctk.CTkButton(self.main_bg,
                                     text="Open File",
-                                    fg_color=self.background_color,
+                                    fg_color=self.button_color,
                                     hover_color=self.hover_color,
                                     border_width=0,
                                     width=100,
@@ -171,7 +385,7 @@ class Notes():
 
         self.theme_button = ctk.CTkButton(self.main_bg,
                                           text="Theme",
-                                          fg_color=self.background_color,
+                                          fg_color=self.button_color,
                                           hover_color=self.hover_color,
                                           border_width=0,
                                           width=50,
@@ -308,7 +522,7 @@ class Notes():
         self.back_button = ctk.CTkButton(self.toolbar,
                                     text="",
                                     image=self.back_image,
-                                    fg_color=self.background_color,
+                                    fg_color=self.button_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
                                     border_color=self.frame_color,
@@ -322,7 +536,7 @@ class Notes():
         self.save_button = ctk.CTkButton(self.toolbar,
                                     text="",
                                     image=self.save_image,
-                                    fg_color=self.background_color,
+                                    fg_color=self.button_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
                                     border_color=self.frame_color,
@@ -336,7 +550,7 @@ class Notes():
         self.bold_button = ctk.CTkButton(self.toolbar,
                                     text="",
                                     image=self.bold_image,
-                                    fg_color=self.background_color,
+                                    fg_color=self.button_color,
                                     hover_color=self.hover_color,
                                     border_width=1,
                                     border_color=self.frame_color,
@@ -350,7 +564,7 @@ class Notes():
         self.italic_button = ctk.CTkButton(self.toolbar,
                                       text="",
                                       image=self.italics_image,
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=1,
                                       border_color=self.frame_color,
@@ -364,7 +578,7 @@ class Notes():
         self.font_button = ctk.CTkButton(self.toolbar,
                                       text="",
                                       image=self.font_image,
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=1,
                                       border_color=self.frame_color,
@@ -378,7 +592,7 @@ class Notes():
         self.bullet_button = ctk.CTkButton(self.toolbar,
                                       text="",
                                       image=self.bulleted_image,
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=1,
                                       border_color=self.frame_color,
@@ -451,7 +665,7 @@ class Notes():
 
         self.yellow_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Yellow",
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
@@ -463,7 +677,7 @@ class Notes():
 
         self.purple_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Purple",
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
@@ -475,7 +689,7 @@ class Notes():
 
         self.red_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Red",
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
@@ -487,7 +701,7 @@ class Notes():
 
         self.green_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Green",
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
@@ -499,7 +713,7 @@ class Notes():
 
         self.blue_button = ctk.CTkButton(self.pre_button_frame,
                                       text="Blue",
-                                      fg_color=self.background_color,
+                                      fg_color=self.button_color,
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
@@ -512,7 +726,7 @@ class Notes():
         self.customize_seperator = ctk.CTkLabel(self.custom_button_frame,
                                                 text="--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---",
                                                 width=700,
-                                                text_color=self.frame_color,
+                                                text_color=self.text_color,
                                                 )
         self.customize_seperator.place(relx=0.5, rely=0.00, anchor="n")
 
@@ -526,7 +740,7 @@ class Notes():
 
         self.background_color_button = ctk.CTkButton(self.custom_button_frame,
                                                      text="",
-                                                     fg_color=self.background_color,
+                                                     fg_color=self.button_color,
                                                      border_width=3,
                                                      border_color=self.frame_color,
                                                      width=50,
@@ -557,7 +771,7 @@ class Notes():
 
         self.hover_color_button = ctk.CTkButton(self.custom_button_frame,
                                                      text="",
-                                                     fg_color=self.background_color,
+                                                     fg_color=self.button_color,
                                                      border_width=3,
                                                      border_color=self.frame_color,
                                                      width=50,
@@ -585,6 +799,161 @@ class Notes():
                                                     text_color=self.text_color,
                                                     )
         self.hover_color_label.place(relx=0.3, rely=0.4, anchor="center")
+
+        self.button_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.button_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("button_color"),
+                                                     )
+        self.button_color_button.place(relx=0.6, rely=0.5, anchor="center")
+
+        self.button_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.button_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.button_enter_bar.place(relx=0.45, rely=0.5, anchor="center")
+        self.button_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("button_color", self.button_enter_bar))
+
+        self.button_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Button Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.button_color_label.place(relx=0.3, rely=0.5, anchor="center")
+
+        self.frame_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.button_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("frame_color"),
+                                                     )
+        self.frame_color_button.place(relx=0.6, rely=0.6, anchor="center")
+
+        self.frame_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.frame_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.frame_enter_bar.place(relx=0.45, rely=0.6, anchor="center")
+        self.frame_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("frame_color", self.frame_enter_bar))
+
+        self.frame_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Frame Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.frame_color_label.place(relx=0.3, rely=0.6, anchor="center")
+
+        self.divider_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.button_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("divider_color"),
+                                                     )
+        self.divider_color_button.place(relx=0.6, rely=0.7, anchor="center")
+
+        self.divider_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.divider_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.divider_enter_bar.place(relx=0.45, rely=0.7, anchor="center")
+        self.divider_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("divider_color", self.divider_enter_bar))
+
+        self.divider_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Divider Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.divider_color_label.place(relx=0.3, rely=0.7, anchor="center")
+
+        self.highlight_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.button_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("highlight_color"),
+                                                     )
+        self.highlight_color_button.place(relx=0.6, rely=0.8, anchor="center")
+
+        self.highlight_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.divider_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.highlight_enter_bar.place(relx=0.45, rely=0.8, anchor="center")
+        self.highlight_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("highlight_color", self.highlight_enter_bar))
+
+        self.highlight_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Highlight Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.highlight_color_label.place(relx=0.3, rely=0.8, anchor="center")
+
+        self.text_highlight_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.button_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("highlighted_text_color"),
+                                                     )
+        self.text_highlight_color_button.place(relx=0.6, rely=0.9, anchor="center")
+
+        self.text_highlight_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.divider_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.text_highlight_enter_bar.place(relx=0.45, rely=0.9, anchor="center")
+        self.text_highlight_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("highlighted_text_color", self.text_highlight_enter_bar))
+
+        self.text_highlight_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Text Highlight Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.text_highlight_color_label.place(relx=0.3, rely=0.9, anchor="center")
 
     # function called when user clicks font button
     def show_fonts(self):
@@ -651,14 +1020,14 @@ class Notes():
                 print("Invalid color")
 
     def pick_color(self, element_name):
-        color = colorchooser.askcolor(title="Choose a color")[1]  # returns (rgb, hex)
+        dialog = ColorPicker(self.app, self)
+        self.app.wait_window(dialog)
 
-        if color:
-            self.apply_custom_color(element_name, color)
+        if dialog.confirmed:   # <-- THIS is the real fix
+            self.apply_custom_color(element_name, dialog.color)
 
     def apply_custom_color(self, element_name, color):
         setattr(self, element_name, color)
-        self.background_color_button.configure(fg_color=color)
         # update UI immediately
         self.change_theme("custom")
 
@@ -712,11 +1081,11 @@ class Notes():
 
     # called when user clicks open button
     def open_file_dialog(self):
-        # filter files in directory to only show json
-        filepath = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
-        # pass selected file to open_file
-        if filepath:
-            self.open_file(filepath)
+        dialog = FileDialog(self.app, self, mode="open", initial_dir=NOTES_DIR)
+        self.app.wait_window(dialog)
+
+        if dialog.selected_file:
+            self.open_file(dialog.selected_file)
 
     # called when the user opens a file
     def open_file(self, path):
@@ -754,12 +1123,13 @@ class Notes():
     def save_file(self):
         # is file's first save?
         if not self.current_file:
-            # open save dialogue
-            filepath = filedialog.asksaveasfilename(
-                defaultextension=".json",
-                filetypes=[("JSON Files", "*.json")],
-                initialdir=NOTES_DIR
-            )
+            dialog = FileDialog(self.app, self, mode="save", initial_dir=NOTES_DIR)
+            self.app.wait_window(dialog)
+
+            if not dialog.selected_file:
+                return
+
+            self.current_file = dialog.selected_file
             # save to current file if preexisting
             if not filepath:
                 return
