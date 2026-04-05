@@ -1,5 +1,5 @@
 {
-    "text": "Hello just here to test the type capture capabaties again:)\nSo far so good, and i think it's working pretty well on all the lines, not just the top one:)!!!\n\n\u2022 hello\n\u2022 hello\n\u2022 hello\n\n- hello\n- hello\n- hello\n\n* hello\n* hello\n* hello\n\n\n",
+    "text": "Hello just here to test the type capture capabaties again:)\nSo far so good, and i think it's working pretty well on all the lines, not just the top one:)!!!\n\n\u2022 hello\n\u2022 hello\n\u2022 hello\n\n- hello\n- hello\n- hello\n\n* hello\n* hello\n* hello\n\n\nhello loved one!\n\nWhat the heck is going on?\n",
     "tags": [
         {
             "tag": "bold",
@@ -14,7 +14,7 @@
         {
             "tag": "bold",
             "start": "3.0",
-            "end": "4.0"
+            "end": "6.7"
         },
         {
             "tag": "bold",
@@ -32,6 +32,11 @@
             "end": "13.7"
         },
         {
+            "tag": "italic",
+            "start": "19.0",
+            "end": "19.26"
+        },
+        {
             "tag": "bold_italic",
             "start": "1.59",
             "end": "2.33"
@@ -40,6 +45,11 @@
             "tag": "bold_italic",
             "start": "12.2",
             "end": "12.7"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "17.0",
+            "end": "17.16"
         }
     ]
 }

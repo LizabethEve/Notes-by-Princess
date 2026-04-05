@@ -114,7 +114,8 @@ def run_app():
         # macOS app bundle
         subprocess.Popen([os.path.join(".", APP_TO_RUN)])
     elif sys.platform == "win32":
-        subprocess.Popen([APP_TO_RUN])
+        #subprocess.Popen([APP_TO_RUN])
+        subprocess.Popen(["python", APP_TO_RUN])
     else:
         subprocess.Popen(["python3", APP_TO_RUN])
 

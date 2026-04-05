@@ -4,7 +4,7 @@ import sys
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
-from tkinter import filedialog
+from tkinter import filedialog, colorchooser
 from Images.recolor import batch_recolor_fast
 
 # constants
@@ -45,7 +45,7 @@ class Notes():
 
         # define variables and all that other good stuff
         self.current_file = None
-        self.active_tags = {"bold": False, "italic": False}
+        self.active_tags = {"bold": False, "italic": False, "bold_italic": False}
         self.themes = {
             "purple": ["#38323b", "#9a6bd6", "#38323b", "#efdefa", "#9a6bd6", "#cab0db", "#efdefa", "#38323b"],
             "yellow": ["#3b3b32", "#d6d56b", "#3b3b32", "#faf9de", "#d6d56b", "#dbd9b0", "#faf9de", "#3b3b32"],
@@ -54,6 +54,16 @@ class Notes():
             "blue": ["#32323b", "#6b7cd7", "#32323b", "#dedffa", "#6b7cd7", "#b0b2db", "#dedffa", "#32323b"],
             "custom": ["#", "#", "#", "#", "#", "#", "#", "#"],
             }
+        self.elements = [
+            ("Background Color", "background_color"),
+            ("Hover Color", "hover_color"),
+            ("Button Color", "button_color"),
+            ("Frame Color", "frame_color"),
+            ("Divider Color", "divider_color"),
+            ("Highlight Color", "highlight_color"),
+            ("Text Color", "text_color"),
+            ("Highlighted Text Color", "highlighted_text_color"),
+            ]
         self.default = self.themes["purple"]
         self.background_color = self.default[0]
         self.hover_color = self.default[1]
@@ -67,7 +77,7 @@ class Notes():
 
         # call functions
         self.load_theme_state()
-        self.load_font_state()
+        #self.load_font_state()
         self.app.protocol("WM_DELETE_WINDOW", self.close_app)
         self.app.configure(fg_color=self.background_color)
 
@@ -96,8 +106,17 @@ class Notes():
                                                 )
         self.file_frame.pack(fill="both", expand=True, padx=2, pady=2)
 
+        self.main_frame = tk.PanedWindow(
+            self.paned,
+            orient="vertical",
+            sashwidth=2,
+            bd=0,
+            bg=self.divider_color
+            )
+        #self.main_frame.pack(fill="both", expand=True)
+
         # create the main frame inside paned and refresh file window
-        self.main_frame = ctk.CTkFrame(self.paned, fg_color=self.background_color, corner_radius=5)
+        #self.main_frame = ctk.CTkFrame(self.paned, fg_color=self.background_color, corner_radius=5)
         self.paned.add(self.main_frame, minsize=300)
         self.refresh_file_frame()
 
@@ -111,15 +130,21 @@ class Notes():
         # clear all widgets attatched to the main frame
         self.clear_main()
 
+        self.main_bg = ctk.CTkFrame(self.main_frame,
+                                    fg_color=self.background_color,
+                                    corner_radius=5,
+                                    border_width=0,)
+        self.main_bg.pack(fill="both", expand=True)
+
         # welcome screen widgets
-        self.title = ctk.CTkLabel(self.main_frame,
+        self.title = ctk.CTkLabel(self.main_bg,
                              text="Notes by Princess",
                              font=("Arial", 28),
                              text_color=self.text_color,
                              )
         self.title.place(relx=0.5, rely=0.2, anchor="center")
 
-        self.new_button = ctk.CTkButton(self.main_frame,
+        self.new_button = ctk.CTkButton(self.main_bg,
                                    text="New File",
                                    fg_color=self.background_color,
                                    hover_color=self.hover_color,
@@ -132,7 +157,7 @@ class Notes():
                                    )
         self.new_button.place(relx=0.4, rely=0.5, anchor="center")
 
-        self.open_button = ctk.CTkButton(self.main_frame,
+        self.open_button = ctk.CTkButton(self.main_bg,
                                     text="Open File",
                                     fg_color=self.background_color,
                                     hover_color=self.hover_color,
@@ -144,7 +169,7 @@ class Notes():
                                     command=self.open_file_dialog)
         self.open_button.place(relx=0.6, rely=0.5, anchor="center")
 
-        self.theme_button = ctk.CTkButton(self.main_frame,
+        self.theme_button = ctk.CTkButton(self.main_bg,
                                           text="Theme",
                                           fg_color=self.background_color,
                                           hover_color=self.hover_color,
@@ -158,11 +183,14 @@ class Notes():
 
     # function called when user clicks a file or theme editor
     def show_editor(self):
-        # clear widgets and create toolbar
+        self.editor_container = ctk.CTkFrame(self.main_frame, fg_color=self.background_color, corner_radius=5,)
+        #self.editor_container.pack(fill="both", expand=True)
+        self.main_frame.add(self.editor_container, minsize=500)
+
         self.show_toolbar()
 
         # editor widgets
-        self.note_title_case = ctk.CTkFrame(self.main_frame,
+        self.note_title_case = ctk.CTkFrame(self.editor_container,
                                             corner_radius=5,
                                             fg_color=self.background_color,
                                             border_width=0,
@@ -180,16 +208,14 @@ class Notes():
                                        text=title,
                                        height=75,
                                        width=100,
+                                       corner_radius=5,
                                        font=("Arial", 30),
                                        text_color=self.text_color,
                                        bg_color=self.background_color)
         self.note_title.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.editor_container = ctk.CTkFrame(self.main_frame, fg_color=self.background_color)
-        self.editor_container.pack(fill="both", expand=True)
-
         self.text_bg = ctk.CTkFrame(self.editor_container, corner_radius=5, fg_color=self.background_color)
-        self.text_bg.pack(side="top", fill="both", expand=True, padx=5, pady=(5, 0))
+        self.text_bg.pack(side="top", expand=True, fill="both", padx=5, pady=(5, 0))
 
         self.notebox = tk.Text(self.text_bg,
                        bg=self.background_color,
@@ -203,7 +229,7 @@ class Notes():
                        selectforeground=self.highlighted_text_color,
                        highlightthickness=0,
                        relief="flat")
-        self.notebox.pack(fill="both", expand=True, padx=25, pady=25)
+        self.notebox.pack(fill="both", expand=True, padx=50, pady=50)
 
         # configure text tags
         self.notebox.tag_config("bold", font=("Arial", 12, "bold"))
@@ -211,6 +237,8 @@ class Notes():
         self.notebox.tag_config("bold_italic", font=("Arial", 12, "bold italic"))
 
         self.notebox.bind("<Return>", self.handle_enter)
+        self.notebox.bind("<Tab>", self.handle_tab)
+        self.notebox.bind("<Shift-Tab>", self.handle_shift_tab)
 
         # binds user key release to apply text tags, so the effect takes place the second the character is released while typing, still having issues with not recording one character while another is pressed down (only one at once)
         self.notebox.bind("<KeyPress>", lambda e: self.notebox.after_idle(self.apply_active_tags))
@@ -218,7 +246,7 @@ class Notes():
     # function called by show_editor, creates toolbar
     def show_toolbar(self):
         # toolbar frame
-        self.toolbar_case = ctk.CTkFrame(self.main_frame,
+        self.toolbar_case = ctk.CTkFrame(self.editor_container,
                                          border_width=0,
                                          fg_color=self.background_color,
                                          corner_radius=5,
@@ -238,7 +266,7 @@ class Notes():
         self.toolbar = ctk.CTkFrame(self.toolbar_case,
                                     fg_color=self.background_color,
                                     border_width=0)
-        self.toolbar.place(relx=0.5, rely=0.0, anchor="n")
+        self.toolbar.place(relx=0.5, rely=0.001, anchor="n")
 
         self.back_image = ctk.CTkImage(
                                     light_image=Image.open(os.path.join(IMAGES, "Back_Arrow.png")),
@@ -377,22 +405,13 @@ class Notes():
 
     # function called by show_theme_editor or font button, creates bottom scrool window
     def show_bottom_window(self):
-        # bottome window widgets
-        self.bottom_window_case = ctk.CTkFrame(self.editor_container,
+        # bottom window widgets
+        self.bottom_window_case = ctk.CTkFrame(self.main_frame,
                                                  corner_radius=5,
                                                  fg_color=self.background_color,
                                                  )
-        self.bottom_window_case.pack(side="bottom", fill="x", pady=5)
-        self.bottom_window_case.configure(height=200)
-
-        self.bottom_window_line = ctk.CTkFrame(self.bottom_window_case,
-                                       corner_radius=5,
-                                       border_width=1,
-                                       border_color=self.frame_color,
-                                       fg_color=self.background_color,
-                                       height=2,
-                                       )
-        self.bottom_window_line.pack(side="top", fill="x", pady=1)
+        #self.bottom_window_case.pack(side="bottom", fill="x", pady=0)
+        self.main_frame.add(self.bottom_window_case, minsize=200)
 
         self.bottom_scroll = ctk.CTkScrollableFrame(self.bottom_window_case,
                                                  corner_radius=5,
@@ -417,14 +436,15 @@ class Notes():
         self.pre_button_frame = ctk.CTkFrame(self.bottom_scroll,
                                          corner_radius=5,
                                          border_width=0,
-                                         height=200,
-                                         fg_color=self.background_color
+                                         fg_color=self.background_color,
+                                         height=100,
                                          )
         self.pre_button_frame.pack(side="top", fill="x")
 
         self.custom_button_frame = ctk.CTkFrame(self.bottom_scroll,
                                                  corner_radius=5,
                                                  border_width=0,
+                                                 height=700,
                                                  fg_color=self.background_color,
                                                  )
         self.custom_button_frame.pack(side="bottom", fill="both", expand=True)
@@ -435,7 +455,7 @@ class Notes():
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
-                                      width=100,
+                                      font=("Arial", 18),
                                       text_color=self.text_color,
                                       command=lambda: self.change_theme("yellow")
                                       )
@@ -447,7 +467,7 @@ class Notes():
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
-                                      width=100,
+                                      font=("Arial", 18),
                                       text_color=self.text_color,
                                       command=lambda: self.change_theme("purple")
                                       )
@@ -459,7 +479,7 @@ class Notes():
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
-                                      width=100,
+                                      font=("Arial", 18),
                                       text_color=self.text_color,
                                       command=lambda: self.change_theme("red")
                                       )
@@ -471,7 +491,7 @@ class Notes():
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
-                                      width=100,
+                                      font=("Arial", 18),
                                       text_color=self.text_color,
                                       command=lambda: self.change_theme("green")
                                       )
@@ -483,7 +503,7 @@ class Notes():
                                       hover_color=self.hover_color,
                                       border_width=0,
                                       corner_radius=5,
-                                      width=100,
+                                      font=("Arial", 18),
                                       text_color=self.text_color,
                                       command=lambda: self.change_theme("blue")
                                       )
@@ -491,19 +511,18 @@ class Notes():
 
         self.customize_seperator = ctk.CTkLabel(self.custom_button_frame,
                                                 text="--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---",
-                                                width=500,
+                                                width=700,
                                                 text_color=self.frame_color,
                                                 )
-        self.customize_seperator.pack(side="top", pady=5)
+        self.customize_seperator.place(relx=0.5, rely=0.00, anchor="n")
 
         self.customize_label = ctk.CTkLabel(self.custom_button_frame,
                                             text="Customize:",
                                             fg_color=self.background_color,
                                             font=("Arial", 25),
-                                            height=100,
                                             text_color=self.text_color,
                                             )
-        self.customize_label.pack(side="top", pady=5)
+        self.customize_label.place(relx=0.5, rely=0.1, anchor="n")
 
         self.background_color_button = ctk.CTkButton(self.custom_button_frame,
                                                      text="",
@@ -513,24 +532,59 @@ class Notes():
                                                      width=50,
                                                      height=25,
                                                      hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("background_color"),
                                                      )
-        self.background_color_button.pack(side="right", padx=350, pady=0)
+        self.background_color_button.place(relx=0.6, rely=0.3, anchor="center")
 
         self.background_enter_bar = ctk.CTkEntry(self.custom_button_frame,
                                                  placeholder_text=self.background_color,
+                                                 justify="center",
                                                  fg_color=self.background_color,
                                                  state="normal",
+                                                 font=("Arial", 18),
                                                  border_color=self.frame_color,
                                                  placeholder_text_color=self.text_color,
                                                  )
-        self.background_enter_bar.pack(side="right", padx=0)
+        self.background_enter_bar.place(relx=0.45, rely=0.3, anchor="center")
+        self.background_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("background_color", self.background_enter_bar))
 
         self.background_color_label = ctk.CTkLabel(self.custom_button_frame,
                                                     text=f"Background Color: ",
                                                     font=("Arial", 18),
                                                     text_color=self.text_color,
                                                     )
-        self.background_color_label.pack(side="right",  padx=0, pady=0)
+        self.background_color_label.place(relx=0.3, rely=0.3, anchor="center")
+
+        self.hover_color_button = ctk.CTkButton(self.custom_button_frame,
+                                                     text="",
+                                                     fg_color=self.background_color,
+                                                     border_width=3,
+                                                     border_color=self.frame_color,
+                                                     width=50,
+                                                     height=25,
+                                                     hover_color=self.hover_color,
+                                                     command=lambda: self.pick_color("hover_color"),
+                                                     )
+        self.hover_color_button.place(relx=0.6, rely=0.4, anchor="center")
+
+        self.hover_enter_bar = ctk.CTkEntry(self.custom_button_frame,
+                                                 placeholder_text=self.hover_color,
+                                                 justify="center",
+                                                 fg_color=self.background_color,
+                                                 state="normal",
+                                                 font=("Arial", 18),
+                                                 border_color=self.frame_color,
+                                                 placeholder_text_color=self.text_color,
+                                                 )
+        self.hover_enter_bar.place(relx=0.45, rely=0.4, anchor="center")
+        self.hover_enter_bar.bind("<Return>", lambda e: self.set_color_from_entry("hover_color", self.hover_enter_bar))
+
+        self.hover_color_label = ctk.CTkLabel(self.custom_button_frame,
+                                                    text=f"Hover Color: ",
+                                                    font=("Arial", 18),
+                                                    text_color=self.text_color,
+                                                    )
+        self.hover_color_label.place(relx=0.3, rely=0.4, anchor="center")
 
     # function called when user clicks font button
     def show_fonts(self):
@@ -541,7 +595,19 @@ class Notes():
     # function called when user changes themes.
     def change_theme(self, theme_name):
         # define the color picked by user to be passed through function
-        theme = self.themes[theme_name]
+        if theme_name == "custom":
+            theme = [
+                self.background_color,
+                self.hover_color,
+                self.button_color,
+                self.frame_color,
+                self.divider_color,
+                self.highlight_color,
+                self.text_color,
+                self.highlighted_text_color
+            ]
+        else:
+            theme = self.themes[theme_name]
 
         # redefine individual colors
         self.background_color = theme[0]
@@ -558,12 +624,10 @@ class Notes():
         # reconfigure widgets to apply theme colors
         self.app.configure(fg_color=self.background_color)
         self.paned.configure(bg=self.divider_color)
-        #self.app.configure(bg=self.background_color)
         self.sidebar_label.configure(fg_color=self.background_color, text_color=self.text_color)
         self.sidebar.configure(fg_color=self.background_color)
         self.file_frame.configure(scrollbar_fg_color=self.background_color, scrollbar_button_color=self.frame_color, scrollbar_button_hover_color=self.hover_color, fg_color=self.background_color)
-        self.main_frame.configure(fg_color=self.background_color)
-        #self.file_frame.configure(fg_color=self.background_color)
+        self.main_frame.configure(bg=self.divider_color)
         self.notebox.configure(bg=self.background_color)
 
         # call functions
@@ -571,6 +635,32 @@ class Notes():
         self.clear_main()
         self.show_theme_editor()
         self.refresh_file_frame()
+
+    def set_color_from_entry(self, element_name, entry_widget):
+        value = entry_widget.get().strip()
+
+        if not value.startswith("#"):
+            value = "#" + value
+
+        # basic validation
+        if len(value) == 7:
+            try:
+                self.app.winfo_rgb(value)  # validates color
+                self.apply_custom_color(element_name, value)
+            except tk.TclError:
+                print("Invalid color")
+
+    def pick_color(self, element_name):
+        color = colorchooser.askcolor(title="Choose a color")[1]  # returns (rgb, hex)
+
+        if color:
+            self.apply_custom_color(element_name, color)
+
+    def apply_custom_color(self, element_name, color):
+        setattr(self, element_name, color)
+        self.background_color_button.configure(fg_color=color)
+        # update UI immediately
+        self.change_theme("custom")
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>
@@ -743,47 +833,72 @@ class Notes():
             pass
 
     def insert_bullet(self):
+        text = self.notebox
+
         try:
-            # If text is selected → apply bullets to all selected lines
-            start = self.notebox.index("sel.first linestart")
-            end = self.notebox.index("sel.last lineend")
-
-            line = start
-            while self.notebox.compare(line, "<=", end):
-                line_end = self.notebox.index(f"{line} lineend")
-                text = self.notebox.get(line, line_end)
-
-                if text.startswith("• "):
-                    # Remove bullet
-                    self.notebox.delete(line, f"{line} +2c")
-                    self.notebox.insert(line, "- ")
-                elif text.startswith(BULLETS[1]):
-                    self.notebox.delete(line, f"{line} +2c")
-                    self.notebox.insert(line, "* ")
-                elif text.startswith(BULLETS[2]):
-                    self.notebox.delete(line, f"{line} +2c")
-                else:
-                    self.notebox.insert(line, "• ")
-
-                line = self.notebox.index(f"{line} +1line")
-
+            start = text.index("sel.first linestart")
+            end = text.index("sel.last lineend")
         except tk.TclError:
-            # No selection → toggle bullet on current line
-            line = self.notebox.index("insert linestart")
-            line_end = self.notebox.index(f"{line} lineend")
-            text = self.notebox.get(line, line_end)
+            start = text.index("insert linestart")
+            end = text.index("insert lineend")
 
-            if text.startswith("• "):
-                # Remove bullet
-                self.notebox.delete(line, f"{line} +2c")
-                self.notebox.insert("insert", "- ")
-            elif text.startswith(BULLETS[1]):
-                self.notebox.delete(line, f"{line} +2c")
-                self.notebox.insert("insert", "* ")
-            elif text.startswith(BULLETS[2]):
-                self.notebox.delete(line, f"{line} +2c")
+        line = start
+
+        while True:
+            line_end = text.index(f"{line} lineend")
+            content = text.get(line, line_end)
+
+            # Extract indentation
+            indent = ""
+            i = 0
+            while i < len(content) and content[i] in (" ", "\t"):
+                indent += content[i]
+                i += 1
+
+            stripped = content.lstrip(" \t")
+            indent = content[:len(content) - len(stripped)]
+
+            # Cycle bullets
+            if stripped.startswith("• "):
+                new = indent + "- " + stripped[2:]
+            elif stripped.startswith("- "):
+                new = indent + "* " + stripped[2:]
+            elif stripped.startswith("* "):
+                new = indent + stripped[2:]
             else:
-                self.notebox.insert("insert", "• ")
+                new = indent + "• " + stripped
+
+            # --- SAVE TAGS IN THIS LINE ---
+            tags_in_line = []
+            for tag in ("bold", "italic", "bold_italic"):
+                ranges = text.tag_ranges(tag)
+                for i in range(0, len(ranges), 2):
+                    tag_start = ranges[i]
+                    tag_end = ranges[i+1]
+
+                    if text.compare(tag_start, "<", line_end) and text.compare(tag_end, ">", line):
+                        # convert to offsets from line start
+                        start_offset = int(text.count(line, tag_start, "chars")[0])
+                        end_offset = int(text.count(line, tag_end, "chars")[0])
+
+                        tags_in_line.append((tag, start_offset, end_offset))
+
+            # --- REPLACE TEXT ---
+            text.delete(line, line_end)
+            text.insert(line, new)
+
+            # --- RESTORE TAGS ---
+            for tag, start_off, end_off in tags_in_line:
+                new_start = f"{line}+{start_off}c"
+                new_end = f"{line}+{end_off}c"
+                text.tag_add(tag, new_start, new_end)
+
+            next_line = text.index(f"{line} +1line")
+
+            if text.compare(next_line, ">", end):
+                break
+
+            line = next_line
 
     # called when user clicks bold button
     def toggle_bold(self):
@@ -808,16 +923,86 @@ class Notes():
         )
 
     def handle_enter(self, event):
-        current_line = self.notebox.get("insert linestart", "insert lineend")
+        text = self.notebox
 
-        if current_line.strip().startswith(BULLETS):
-            if current_line.strip().startswith("- "):
-                self.notebox.insert("insert", "\n- ")
-            elif current_line.strip().startswith("* "):
-                self.notebox.insert("insert", "\n* ")
-            elif current_line.strip().startswith("• "):
-                self.notebox.insert("insert", "\n• ")
-            return "break"  # prevent default newline
+        line_start = text.index("insert linestart")
+        line_end = text.index("insert lineend")
+        line_text = text.get(line_start, line_end)
+
+        # Extract indentation
+        indent = ""
+        i = 0
+        while i < len(line_text) and line_text[i] in (" ", "\t"):
+            indent += line_text[i]
+            i += 1
+
+        stripped = line_text[len(indent):]
+
+        for bullet in BULLETS:
+            if stripped.startswith(bullet):
+                content = stripped[len(bullet):]
+
+                # EXIT LIST
+                if content.strip() == "":
+                    text.delete(line_start, line_end)
+                    text.insert(line_start, indent)
+                    text.mark_set("insert", line_start + f"+{len(indent)}c")
+                    return "break"
+
+                # CONTINUE LIST
+                text.insert("insert", f"\n{indent}{bullet}")
+                return "break"
+
+        return None
+
+    def handle_tab(self, event):
+        text = self.notebox
+
+        try:
+            start = text.index("sel.first linestart")
+            end = text.index("sel.last lineend")
+        except tk.TclError:
+            start = text.index("insert linestart")
+            end = text.index("insert lineend")
+
+        line = start
+
+        while True:
+            text.insert(line, "    ")
+
+            if text.compare(line, ">=", end):
+                break
+
+            line = text.index(f"{line} +1line")
+
+        return "break"
+
+
+    def handle_shift_tab(self, event):
+        text = self.notebox
+
+        try:
+            start = text.index("sel.first linestart")
+            end = text.index("sel.last lineend")
+        except tk.TclError:
+            start = text.index("insert linestart")
+            end = text.index("insert lineend")
+
+        line = start
+
+        while True:
+            line_end = text.index(f"{line} lineend")
+            content = text.get(line, line_end)
+
+            if content.startswith("    "):
+                text.delete(line, f"{line}+4c")
+
+            if text.compare(line, ">=", end):
+                break
+
+            line = text.index(f"{line} +1line")
+
+        return "break"
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>
@@ -840,25 +1025,25 @@ class Notes():
         return tag_data
 
     # save toolbar state for button consistency
-    def save_font_state(self):
-        font_state = {
-            "bold": self.active_tags["bold"],
-            "italic": self.active_tags["italic"]
-            }
-        with open(FONT_FILE, 'w') as f:
-            json.dump(font_state, f)
+    #def save_font_state(self):
+        #font_state = {
+            #"bold": self.active_tags["bold"],
+            #"italic": self.active_tags["italic"]
+            #}
+        #with open(FONT_FILE, 'w') as f:
+            #json.dump(font_state, f)
 
     # restores toolbar state on app open
-    def load_font_state(self):
-        try:
-            with open(FONT_FILE, 'r') as f:
-                font_state = json.load(f)
-            self.active_tags["bold"] = font_state.get("bold", False)
-            self.active_tags["italic"] = font_state.get("italic", False)
-        except (FileNotFoundError, json.JSONDecodeError):
+    #def load_font_state(self):
+        #try:
+            #with open(FONT_FILE, 'r') as f:
+                #font_state = json.load(f)
+            #self.active_tags["bold"] = font_state.get("bold", False)
+           # self.active_tags["italic"] = font_state.get("italic", False)
+        #except (FileNotFoundError, json.JSONDecodeError):
             # If the file is not found or corrupted, reset the font states to default (False)
-            self.active_tags["bold"] = False
-            self.active_tags["italic"] = False
+            #self.active_tags["bold"] = False
+            #self.active_tags["italic"] = False
 
     # do i really need to comment here?
     def save_theme_state(self):
@@ -914,7 +1099,7 @@ class Notes():
         return os.path.join(base_path, relative_path)
 
     def close_app(self):
-        self.save_font_state()
+        #self.save_font_state()
         self.save_theme_state()
         self.app.destroy()
 
