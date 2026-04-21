@@ -1,0 +1,120 @@
+{
+    "text": "Hello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\nHello, please excuse me!\n\n\n",
+    "tags": [
+        {
+            "tag": "bold",
+            "start": "2.0",
+            "end": "2.24"
+        },
+        {
+            "tag": "bold",
+            "start": "7.0",
+            "end": "7.24"
+        },
+        {
+            "tag": "italic",
+            "start": "3.0",
+            "end": "3.24"
+        },
+        {
+            "tag": "italic",
+            "start": "8.0",
+            "end": "8.24"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "4.0",
+            "end": "4.24"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "5.0",
+            "end": "5.24"
+        },
+        {
+            "tag": "bold_italic",
+            "start": "9.0",
+            "end": "9.24"
+        },
+        {
+            "tag": "font_0",
+            "start": "1.0",
+            "end": "12.0",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": ""
+            }
+        },
+        {
+            "tag": "font_1",
+            "start": "2.0",
+            "end": "2.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "bold"
+            }
+        },
+        {
+            "tag": "font_1",
+            "start": "7.0",
+            "end": "7.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "bold"
+            }
+        },
+        {
+            "tag": "font_2",
+            "start": "3.0",
+            "end": "3.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "italic"
+            }
+        },
+        {
+            "tag": "font_2",
+            "start": "8.0",
+            "end": "8.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "italic"
+            }
+        },
+        {
+            "tag": "font_3",
+            "start": "4.0",
+            "end": "4.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "bold_italic"
+            }
+        },
+        {
+            "tag": "font_3",
+            "start": "5.0",
+            "end": "5.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "bold_italic"
+            }
+        },
+        {
+            "tag": "font_3",
+            "start": "9.0",
+            "end": "9.24",
+            "font_spec": {
+                "font": "C059",
+                "size": 16,
+                "style": "bold_italic"
+            }
+        }
+    ]
+}
